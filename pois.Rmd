@@ -1,0 +1,114 @@
+```{r}
+id = 6
+set.seed(id)
+n = 100
+m = 1000
+theta = id/10
+x = matrix(rpois(n*m, lambda = theta), nrow = n)
+sample_means = apply(x, 2, mean)
+sample_sd = apply(x, 2, sd)
+mu = theta
+s = sqrt(theta)
+```
+
+(2) Using the normal approximation $\mathcal{N}(\mu,\sigma^2)$ for $\mathbf{\overline{X}}$; the parameters are $\mu$ = $\theta$ and $\sigma^2$ = $s^2/n,$ where $s^2$ = $\theta$ is the population variance (i.e., variance of the original distribution $\mathcal{P}(λ)$). In other words, we form the Z-statistics $Z$ := $\sqrt{n}(\mathbf{\overline{X}} - \theta)/sqrt(\theta)$)and use the fact that it is approximately standard normal $\mathcal{N}(0, 1)$ to find that
+
+    $$P(|\theta - \mathbf{\overline{X}}| \le z_\beta\sqrt(\theta)/\sqrt(n)) = P(|Z| \le z_\beta) = 2\beta - 1$$
+
+    in other words, $\theta$ is with probability $2\beta - 1$ within $\mathbf{\overline{X}}\pm z_\beta\theta/\sqrt(n)$ .
+
+    ```{r}
+    for (alpha in c(.1,.05,0.01)) {
+          cat("For confidence level", 1- alpha, "\n")
+        cat("    the fraction of CI's containing the parameter is",
+      mean(abs(sample_means-theta) < qnorm(1-alpha/2, 0, 1) *s/sqrt(n)), "\n")
+            cat("    maximal CI length is", max(qnorm(1-alpha/2, 0, 1) *s/sqrt(n)
+                                          +qnorm(1-alpha/2, 0, 1) *s/sqrt(n)), "\n", sep = " ")
+        cat("    mean CI length is", mean(+qnorm(1-alpha/2, 0, 1) *s/sqrt(n)
+                                          +qnorm(1-alpha/2, 0, 1) *s/sqrt(n)), "\n", sep = " ")
+    }
+    ```
+
+(3) The confidence interval constructed above uses the unknown variance $s^2=\theta$ and is of little use in practice. Instead, we can solve the double inequality
+
+so we have a pois distr $P(\theta)$ $s^2 = \theta$ $|\theta - \mathbf{\overline{X}}| \le z_\beta\sqrt{\theta}/\sqrt{n}$\
+Let's substitute\
+$b = z_\beta\sqrt{n}$\
+$c = \mathbf{\overline{X}}$\
+We have $|\theta - c| \le b\sqrt{\theta}$\
+$|\theta - c| =\begin{cases}c - \theta , \theta \le c \\-(c - \theta) , \theta \gt c\end{cases}$\
+for $\theta \leq c$ and $\theta \gt c$ the equation we have to solve will be the same\
+$c-\theta \leq b \sqrt{\theta} / \uparrow^2$\
+$c^2-2c\theta+\theta^2 \leq b^2{\theta}$\
+$\theta^2 - (b^2+2c)\theta +c^2\leq 0$\
+$\theta_1 = \dfrac{-\sqrt{b^2(b^2 + 4c)}+ b^2+ 2c}{2}$\
+$\theta_2 = \dfrac{\sqrt{b^2(b^2 + 4c)}+ b^2+ 2c}{2}$\
+$\left(\begin{array}{ccc}\dfrac{-\sqrt{b^2(b^2 + 4c)}+ b^2+ 2c}{2} & \dfrac{(\sqrt{b^2(b^2 + 4c)}+ b^2+ 2c}{2}\end{array}\right)$
+
+```{r}
+formulaLeft = function(b, c) {
+  return
+   1/2 * 
+    (
+      -sqrt(
+        b^2
+        *
+        (b^2 + 4 * c)
+        )
+      + b^2
+      + 2*c
+    )
+}
+formulaRight = function(b, c) {
+  return
+   1/2 * 
+    (
+      sqrt(
+        b^2
+        *
+        (b^2 + 4 * c)
+        )
+      + b^2
+      + 2*c
+    )
+}
+
+for (alpha in c(.1,.05,0.01)) {
+      cat("For confidence level", 1- alpha, "\n")
+    cat("    the fraction of CI's containing the parameter is",
+  mean(formulaLeft(qnorm(1-alpha/2, 0, 1)/sqrt(n), sample_means)<mu & mu<formulaRight(qnorm(1-alpha/2, 0, 1)/sqrt(n), sample_means)), "\n")
+        cat("    maximal CI length is", max(-formulaLeft(qnorm(1-alpha/2, 0, 1)/sqrt(n), (sample_means))+formulaRight(qnorm(1-alpha/2, 0, 1)/sqrt(n), (sample_means))), "\n", sep = " ")
+    cat("    mean CI length is", (mean(
+      -formulaLeft(qnorm(1-alpha/2, 0, 1)/sqrt(n), (sample_means))
+      +formulaRight(qnorm(1-alpha/2, 0, 1)/sqrt(n), (sample_means)))
+      ), "\n", sep = " ")
+}
+
+
+```
+
+4.  Another (and a more universal approach) to get rid of the dependence on $θ$ in (2) is to estimate s via the sample standard error and use approximation of $\mathbf{\overline{X}}$ via Student t-distribution; see details in Ross textbook on statistics or in the lecture notes
+
+```{r}
+
+# qt is quantile for Student distribution with n-1 degrees of freedom
+# identical to task3
+
+
+
+for (alpha in c(.1,.05,0.01)) {
+      cat("For confidence level", 1- alpha, "\n")
+    cat("    the fraction of CI's containing the parameter is",
+  mean(abs(sample_means-mu) < qt(1-alpha/2, n-1) *  sample_sd/sqrt(n)), "\n")
+        cat("    maximal CI length is", max(+qt(1-alpha/2, n-1) *  sample_sd/sqrt(n)
+                                      +qt(1-alpha/2, n-1) *  sample_sd/sqrt(n)), "\n", sep = " ")
+    cat("    mean CI length is", mean(+qt(1-alpha/2, n-1) *  sample_sd/sqrt(n)
+                                      +qt(1-alpha/2, n-1) *  sample_sd/sqrt(n)), "\n", sep = " ")
+}
+
+```
+Conclusion
+
+The estimation with Student distr. is innaccurate, but we don`t need variance, so thats great
+
+The difference between the fraction of CI's containing the parameter using (2) and (3) is absent, as it is simply reshuffling of the variables. We wouldn't get an inequality to solve if we didn't know the variance
