@@ -85,7 +85,7 @@ for (alpha in alphas){
 for (alpha in alphas){
     cat("For confidence level", 1- alpha, "\n")
     cat("    the fraction of CI's containing the parameter is",
-        mean((theta >= (sample_mean - qnorm(1 - alpha/2)*sample_sd/sqrt(n))) & (theta <= (sample_mean + qnorm(1 - alpha/2)*sample_sd/sqrt(n)))), "\n", sep = " ")
+        mean((theta >= (sample_mean - qnorm(1 - alpha/2)*theta/sqrt(n))) & (theta <= (sample_mean + qnorm(1 - alpha/2)*theta/sqrt(n)))), "\n", sep = " ")
     cat("    maximal CI length is", (max(sample_mean) + qnorm(1 - alpha/2)*theta/sqrt(n)) - (max(sample_mean) - qnorm(1 - alpha/2)*theta/sqrt(n)), "\n", sep = " ")
     cat("    mean CI length is", (mean(sample_mean) + qnorm( 1 - alpha/2)*theta/sqrt(n)) - (mean(sample_mean) - qnorm(1 - alpha/2)*theta/sqrt(n)), "\n", sep = " ")
 }
