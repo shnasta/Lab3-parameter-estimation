@@ -153,3 +153,14 @@ for (alpha in alphas){
     cat("    mean CI length is", 2*(qt(1-alpha/2, n - 1))*mean(sample_sd)/sqrt(n),"\n", sep = " ")
 }
 ```
+## Conclusions
+
+In my opinion, chi-squared first method is the best for forming confidence intervals for exponential distribution., as it gives the closest fraction of CI's containing the parameter.
+
+Second and third method are dependent on $\theta$, as they use the same inequality with unknown variance, so I wouldn't recommend to use them.
+
+Fourth method gives less accurate results, so that's why first method is the best for this task.
+
+The biggest mean CI length gives the third method, which is unexpected for me, but with bigger n and m the difference between CI lengths calculated using different methods becomes really small.
+
+I also found interesting that results are more accurate with bigger M(amount of samples), and they are less dependent on N(length of sequence).
