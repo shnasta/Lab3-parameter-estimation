@@ -1,0 +1,155 @@
+---
+title: 'P&S-2022: Lab assignment 3'
+author: "Sofiia Folvarochna, Anastasiia Shvets, Serhii Ivanov"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r}
+id <- 6
+set.seed(id)
+```
+
+# Problem 3
+
+```{r}
+theta <- id/10
+alphas <- c(0.01, 0.05, 0.1)
+bethas <- 1-alphas/2 
+n <- 100
+m <- 100
+exp_sample <- matrix(rexp(n*m, 1/theta), nrow = n)
+sample_mean <- colMeans(exp_sample)
+sample_sd <- apply(exp_sample, 2, sd)
+```
+
+The expected value of the exponential distribution $\mathcal{E}(\lambda)$ is$1/\lambda$, so that a good point estimate of the parameter $\theta:= 1/λ$ is the sample mean $\mathbf{\overline{x}}$. Confidence interval for $\theta$ can be formed in several different ways:
+
+(1) Using the exact distribution of the statistics $2λn\mathbf{\overline{X}}$ (show it is ${\chi}^2_{2n}$ and then use quantiles of the latter to get the interval endpoints)
+
+    $$
+    2\lambda n \mathbf{\overline{X}} = \frac{X_1+...+X_n}{n}2\lambda n = 2\lambda X_1+...+2\lambda X_n 
+    $$
+
+    $$
+    F_{2\lambda X}(t) =P(2\lambda X<t) = P(X<\frac{t}{2\lambda}
+    ) = F_X(\frac{t}{2\lambda})$$
+
+    $$
+    (F_X(\frac{t}{2\lambda}))' = f_x(\frac{t}{2\lambda})\frac{1}{2\lambda}) = \lambda e^{-\lambda\frac{t}{2\lambda}}\frac{1}{2\lambda}=\frac{1}{2}e^{-\frac{t}{2}}\sim\mathcal{E}(\frac{1}{2})
+    $$
+
+    ::: {align="center"}
+    $2\lambda n\mathbf{\overline{X}} = Y_1 + ...Y_n$, where every $Y_i \sim \mathcal{E}(\frac{1}{2})$, so $2\lambda n\mathbf{\overline{X}}\sim \Gamma(n, \frac{1}{2})$.
+    :::
+
+    $$
+    P(\chi^{2n}_\frac{\alpha}{2} \le
+     2\lambda n\mathbf{\overline{X}} \le  \chi^{2n}_{1-\frac{\alpha}{2}})$$
+
+    $$
+    P(\frac{\chi^{2n}_\frac{\alpha}{2}}{2n\mathbf{\overline{X}}} \le \lambda \le \frac{\chi^{2n}_{1-\frac{\alpha}{2}}}{2n\mathbf{\overline{X}}}
+    $$
+
+    $$P(\frac{2n\mathbf{\overline{X}}}{\chi^{2n}_{1-\frac{\alpha}{2}}} \le \theta \le \frac{2n\mathbf{\overline{X}}}{\chi^{2n}_\frac{\alpha}{2}})$$
+
+    $$
+    \left[
+    \begin{array}{ccc}
+    \frac{2n\mathbf{\overline{X}}}{\chi^{2n}_{1-\frac{\alpha}{2}}} & \frac{2n\mathbf{\overline{X}}}{\chi^{2n}_\frac{\alpha}{2}}
+    \end{array}
+    \right]
+    $$
+
+```{r}
+for (alpha in alphas){
+    cat("For confidence level", 1- alpha, "\n")
+    cat("    the fraction of CI's containing the parameter is",
+        mean((theta >= (2*n*sample_mean)/qchisq(1-alpha/2, 2*n)) & (theta <= (2*n*sample_mean)/qchisq(alpha/2, 2*n))), "\n", sep = " ")
+    cat("    maximal CI length is", (2*n*max(sample_mean))/qchisq(alpha/2, 2*n) - (2*n*max(sample_mean))/qchisq(1-alpha/2, 2*n), "\n", sep = " ")
+    cat("    mean CI length is", (2*n*mean(sample_mean))/qchisq(alpha/2, 2*n) - (2*n*mean(sample_mean))/qchisq(1-alpha/2, 2*n), "\n", sep = " ")
+}
+```
+
+(2) Using the normal approximation $\mathcal{N}(\mu,\sigma^2)$ for $\mathbf{\overline{X}}$; the parameters are $\mu$ = $\theta$ and $\sigma^2$ = $s^2/n,$ where $s^2$ = $\theta^2$ is the population variance (i.e., variance of the original distribution $\mathcal{E}(λ)$). In other words, we form the Z-statistics $Z$ := $\sqrt{n}(\mathbf{\overline{X}} - \theta)/\theta$ and use the fact that it is approximately standard normal $\mathcal{N}(0, 1)$ to find that
+
+    $$P(|\theta - \mathbf{\overline{X}}| \le z_\beta\theta/\sqrt(n) = P(|Z| \le z_\beta) = 2\beta - 1$$
+
+    in other words, $\theta$ is with probability $2\beta - 1$ within $\mathbf{\overline{X}}\pm z_\beta\theta/\sqrt(n)$ .
+
+```{r}
+
+
+
+for (alpha in alphas){
+    cat("For confidence level", 1- alpha, "\n")
+    cat("    the fraction of CI's containing the parameter is",
+        mean((theta >= (sample_mean - qnorm(1 - alpha/2)*theta/sqrt(n))) & (theta <= (sample_mean + qnorm(1 - alpha/2)*theta/sqrt(n)))), "\n", sep = " ")
+    cat("    maximal CI length is", (max(sample_mean) + qnorm(1 - alpha/2)*theta/sqrt(n)) - (max(sample_mean) - qnorm(1 - alpha/2)*theta/sqrt(n)), "\n", sep = " ")
+    cat("    mean CI length is", (mean(sample_mean) + qnorm( 1 - alpha/2)*theta/sqrt(n)) - (mean(sample_mean) - qnorm(1 - alpha/2)*theta/sqrt(n)), "\n", sep = " ")
+}
+```
+
+3.  The confidence interval constructed above uses the unknown variance $s^2=\theta^2$ and is of little use in practice. Instead, we can solve the double inequality
+
+    $$|\theta - \mathbf{\overline{X}}| \le z_\beta\theta/\sqrt{n}$$
+
+    $$
+    \begin{cases}
+    \theta \le \frac{\mathbf{\overline{X}}}{1-\frac{z_\beta}{\sqrt{n}}}\\
+    -\theta \le \frac{-\mathbf{\overline{X}}}{1+\frac{z_\beta}{\sqrt{n}}}  
+    \end{cases}
+    $$
+
+    $$
+    \begin{cases}
+    \theta \le \frac{\mathbf{\overline{X}}}{1-\frac{z_\beta}{\sqrt{n}}}\\
+    \theta \ge \frac{\mathbf{\overline{X}}}{1+\frac{z_\beta}{\sqrt{n}}}  
+    \end{cases}
+    $$
+
+    $$
+    \left[
+    \begin{array}{ccc}
+    \frac{\mathbf{\overline{X}}}{1+\frac{z_\beta}{\sqrt{n}}} & \frac{\mathbf{\overline{X}}}{1-\frac{z_\beta}{\sqrt{n}}}
+    \end{array}
+    \right]
+    $$
+
+```{r}
+for (alpha in alphas){
+    cat("For confidence level", 1- alpha, "\n")
+    cat("    the fraction of CI's containing the parameter is",
+        mean((theta >= (sample_mean/(1+ qnorm(1 - alpha/2)/sqrt(n)))) & (theta <= (sample_mean/(1- qnorm(1 - alpha/2)/sqrt(n))))), "\n", sep = " ")
+    cat("    maximal CI length is",(max(sample_mean)/(1- qnorm(1 - alpha/2)/sqrt(n))) - (max(sample_mean)/(1+ qnorm(1 - alpha/2)/sqrt(n))), "\n", sep = " ")
+    cat("    mean CI length is", (mean(sample_mean)/(1- qnorm(1 - alpha/2)/sqrt(n))) - (mean(sample_mean)/(1+ qnorm(1 - alpha/2)/sqrt(n))), "\n", sep = " ")
+}
+```
+
+4.  Another (and a more universal approach) to get rid of the dependence on $θ$ in (2) is to estimate s via the sample standard error and use approximation of $\mathbf{\overline{X}}$ via Student t-distribution; see details in Ross textbook on statistics or in the lecture notes
+
+    $$
+    \frac{\mathbf{\overline{X}}-\theta}{\sigma}\sqrt{n} \sim \mathcal{N}(0,1)
+    $$
+
+    $$
+    \frac{\mathbf{\overline{X}}-\theta}{S}\sqrt{n} \sim \mathcal{T}_{n-1}\\
+    P(t^{n-1}_{\frac{\alpha}{2}} \le \frac{\mathbf{\overline{X}}-\theta}{S}\sqrt{n} \le t^{n-1}_{1-\frac{\alpha}{2}}) \\
+    P(\mathbf{\overline{X}} -  t^{n-1}_{\frac{\alpha}{2}} \frac{S}{\sqrt{n}} \le \theta \le \mathbf{\overline{X}}  + t^{n-1}_{\frac{\alpha}{2}} \frac{S}{\sqrt{n}})\\
+    \left[
+    \begin{array}{ccc}
+    \mathbf{\overline{X}} -  t^{n-1}_{\frac{\alpha}{2}} \frac{S}{\sqrt{n}} & \mathbf{\overline{X}}  + t^{n-1}_{\frac{\alpha}{2}} \frac{S}{\sqrt{n}}
+    \end{array}
+    \right]
+    $$
+
+```{r}
+for (alpha in alphas){
+    cat("For confidence level", 1- alpha, "\n")
+    cat("    the fraction of CI's containing the parameter is",
+        mean(abs(sample_mean -theta) < qt(1-alpha/2, n - 1)*sample_sd/sqrt(n)), "\n", sep = " ")
+    cat("    maximal CI length is", 2*(qt(1-alpha/2, n - 1)*max(sample_sd)/sqrt(n)), "\n", sep = " ")
+    cat("    mean CI length is", 2*(qt(1-alpha/2, n - 1))*mean(sample_sd)/sqrt(n),"\n", sep = " ")
+}
+```
