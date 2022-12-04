@@ -18,7 +18,7 @@ theta <- id/10
 alphas <- c(0.01, 0.05, 0.1)
 bethas <- 1-alphas/2 
 n <- 100
-m <- 100
+m <- 10000
 exp_sample <- matrix(rexp(n*m, 1/theta), nrow = n)
 sample_mean <- colMeans(exp_sample)
 sample_sd <- apply(exp_sample, 2, sd)
@@ -85,7 +85,7 @@ for (alpha in alphas){
 for (alpha in alphas){
     cat("For confidence level", 1- alpha, "\n")
     cat("    the fraction of CI's containing the parameter is",
-        mean((theta >= (sample_mean - qnorm(1 - alpha/2)*theta/sqrt(n))) & (theta <= (sample_mean + qnorm(1 - alpha/2)*theta/sqrt(n)))), "\n", sep = " ")
+        mean((theta >= (sample_mean - qnorm(1 - alpha/2)*sample_sd/sqrt(n))) & (theta <= (sample_mean + qnorm(1 - alpha/2)*sample_sd/sqrt(n)))), "\n", sep = " ")
     cat("    maximal CI length is", (max(sample_mean) + qnorm(1 - alpha/2)*theta/sqrt(n)) - (max(sample_mean) - qnorm(1 - alpha/2)*theta/sqrt(n)), "\n", sep = " ")
     cat("    mean CI length is", (mean(sample_mean) + qnorm( 1 - alpha/2)*theta/sqrt(n)) - (mean(sample_mean) - qnorm(1 - alpha/2)*theta/sqrt(n)), "\n", sep = " ")
 }
@@ -136,10 +136,10 @@ for (alpha in alphas){
     $$
     \frac{\mathbf{\overline{X}}-\theta}{S}\sqrt{n} \sim \mathcal{T}_{n-1}\\
     P(t^{n-1}_{\frac{\alpha}{2}} \le \frac{\mathbf{\overline{X}}-\theta}{S}\sqrt{n} \le t^{n-1}_{1-\frac{\alpha}{2}}) \\
-    P(\mathbf{\overline{X}} -  t^{n-1}_{\frac{\alpha}{2}} \frac{S}{\sqrt{n}} \le \theta \le \mathbf{\overline{X}}  + t^{n-1}_{\frac{\alpha}{2}} \frac{S}{\sqrt{n}})\\
+    P(\mathbf{\overline{X}} -  t^{n-1}_{1-\frac{\alpha}{2}} \frac{S}{\sqrt{n}} \le \theta \le \mathbf{\overline{X}}  + t^{n-1}_{1-\frac{\alpha}{2}} \frac{S}{\sqrt{n}})\\
     \left[
     \begin{array}{ccc}
-    \mathbf{\overline{X}} -  t^{n-1}_{\frac{\alpha}{2}} \frac{S}{\sqrt{n}} & \mathbf{\overline{X}}  + t^{n-1}_{\frac{\alpha}{2}} \frac{S}{\sqrt{n}}
+    \mathbf{\overline{X}} -  t^{n-1}_{1-\frac{\alpha}{2}} \frac{S}{\sqrt{n}} & \mathbf{\overline{X}}  + t^{n-1}_{1-\frac{\alpha}{2}} \frac{S}{\sqrt{n}}
     \end{array}
     \right]
     $$
